@@ -1,0 +1,23 @@
+name: Build, bump tag version and release
+
+on:
+  repository_dispatch:
+    types: [tag-created]
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project
+        run: cargo build --release --locked
+      - name: Upload binary to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/alemanes
+          asset_name: alemanes-linux-amd64
+          tag: ${{ github.event.client_payload.new_version }}
+          overwrite: true
