@@ -1,6 +1,7 @@
 use dotenv::dotenv;
 use futures::future::join_all;
 use serde::Serialize;
+use tracing_subscriber::util::SubscriberInitExt;
 use std::collections::HashMap;
 use std::error::Error;
 use std::future::Future;
@@ -10,9 +11,9 @@ use tokio::fs::{File, OpenOptions};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::time::{timeout, Duration};
-use tracing_subscriber::EnvFilter;
-use tracing_subscriber::fmt::SubscriberBuilder;
 use tracing::{debug, info};
+use tracing_subscriber::fmt::SubscriberBuilder;
+use tracing_subscriber::EnvFilter;
 
 const MODBUS_EXCETION_MODES: &[&str; 10] = &[
     "Unknown Exception",
@@ -215,12 +216,25 @@ async fn get_devices(addr: SocketAddr) -> Result<Host, Box<dyn Error>> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    dotenv().ok();
+    #[cfg(debug_assertions)]{
+        dotenv().ok();
+    }
+    let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     SubscriberBuilder::default()
-        .with_env_filter(EnvFilter::from_default_env())
+        .with_env_filter(env_filter)
         .init();
     info!("opening ips.txt");
-    let file = File::open("ips.txt").await.expect("Failed to read file");
+    let file: File = match File::open("ips.txt").await {
+        Ok(file) => file,
+        Err(_) => {
+            let mut file = File::create("ips.txt").await?;
+            file.write_all(b"101.200.184.93:502\n120.77.166.219")
+                .await?;
+            println!("Update the ips.txt file.");
+            let _ = file.flush();
+            File::open("ips.txt").await?
+        }
+    };
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut addresses: Vec<SocketAddr> = Vec::new();
@@ -246,7 +260,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     info!("saving result.txt");
     let mut file = OpenOptions::new()
         .create(true)
-        .append(true)
+        .append(false)
+        .write(true)
+        .truncate(true)
         .open("result.txt")
         .await
         .expect("Failed to open file");

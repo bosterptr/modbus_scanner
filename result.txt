@@ -1,1 +1,1 @@
-[{"addr":"195.69.216.206:502","devices":[{"exception_code":null,"identification":"Delta Electronics, Inc. 0001000001000304 02.08.00","slave_id":"\u0002�| \u0010i\u0000\u0015\u0000\u0002\u0000\u0001��\u001283)"}]}]
+[]
