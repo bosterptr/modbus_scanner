@@ -254,7 +254,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "modbus"
+name = "modbus_scanner"
 version = "0.1.0"
 dependencies = [
  "byteorder",

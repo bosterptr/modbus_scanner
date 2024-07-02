@@ -10,9 +10,9 @@ use tokio::fs::{File, OpenOptions};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::time::{timeout, Duration};
-use tracing::{debug, info};
-use tracing_subscriber::fmt::SubscriberBuilder;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt::SubscriberBuilder;
+use tracing::{debug, info};
 
 const MODBUS_EXCETION_MODES: &[&str; 10] = &[
     "Unknown Exception",
